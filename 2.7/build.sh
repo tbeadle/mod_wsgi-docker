@@ -34,20 +34,7 @@
 
 set -eo pipefail
 
-# Mark what runtime this is.
-
-WHISKEY_RUNTIME=docker
-export WHISKEY_RUNTIME
-
-# Set up the home directory for the application.
-
-WHISKEY_HOMEDIR=/app
-export WHISKEY_HOMEDIR
-
-# Set up the bin directory where our scripts will be.
-
-WHISKEY_BINDIR=/app/.whiskey/python/bin
-export WHISKEY_BINDIR
+. mod_wsgi-docker-vars
 
 # Make sure we are in the correct working directory for the application.
 
@@ -56,28 +43,10 @@ cd $WHISKEY_HOMEDIR
 # Copy the Apache executables into the Python directory so they can
 # be found without working out how to override the PATH.
 
-cp $WHISKEY_HOMEDIR/.whiskey/apache/bin/apxs $WHISKEY_BINDIR/apxs
-cp $WHISKEY_HOMEDIR/.whiskey/apache/bin/httpd $WHISKEY_BINDIR/httpd
-cp $WHISKEY_HOMEDIR/.whiskey/apache/bin/rotatelogs $WHISKEY_BINDIR/rotatelogs
-cp $WHISKEY_HOMEDIR/.whiskey/apache/bin/ab $WHISKEY_BINDIR/ab
-
-# Create the '.whiskey/user_vars' directory for storage of user defined
-# environment variables if it doesn't already exist. These can be
-# created by the user from any hook script. The name of the file
-# corresponds to the name of the environment variable and the contents
-# of the file the value to set the environment variable to.
-#
-# Note that because the path to the user_vars directory was changed, we
-# need to warn about old deprecated name. In case that the user is using
-# old name, just symlink the new location to the old.
-
-if test -d .docker/user_vars; then
-    echo " -----> Linking deprecated .docker/user_vars"
-    echo "WARNING: Use directory .whiskey/user_vars instead."
-    ln -s $WHISKEY_HOMEDIR/.docker/user_vars .whiskey/user_vars
-else
-    test ! -d .whiskey/user_vars && mkdir -p .whiskey/user_vars
-fi
+ln -s $WHISKEY_HOMEDIR/apache/bin/apxs $WHISKEY_BINDIR/apxs
+ln -s $WHISKEY_HOMEDIR/apache/bin/httpd $WHISKEY_BINDIR/httpd
+ln -s $WHISKEY_HOMEDIR/apache/bin/rotatelogs $WHISKEY_BINDIR/rotatelogs
+ln -s $WHISKEY_HOMEDIR/apache/bin/ab $WHISKEY_BINDIR/ab
 
 # Run any user supplied script to be run prior to installing application
 # dependencies. This is to allow additional system packages to be
@@ -94,53 +63,45 @@ fi
 # old name, just symlink the new location to the old. If both exist, then
 # this should fail.
 
-if test -f .docker/action_hooks; then
-    echo " -----> Linking deprecated .docker/action_hooks"
-    echo "WARNING: Use directory .whiskey/action_hooks instead."
-    ln -s $WHISKEY_HOMEDIR/.docker/action_hooks .whiskey/action_hooks
-fi
-
-if [ -x .whiskey/action_hooks/pre-build ]; then
-    echo " -----> Running .whiskey/action_hooks/pre-build"
-    .whiskey/action_hooks/pre-build
+PRE_BUILD_HOOK=${WHISKEY_HOMEDIR}/action_hooks/pre-build
+if [ -x ${PRE_BUILD_HOOK} ]; then
+	echo " -----> Running ${PRE_BUILD_HOOK}"
+	${PRE_BUILD_HOOK}
 fi
 
 # Check whether there are any git repositories referenced from the
 # 'requirements.txt file. If there are then we need to first explicitly
 # install git and only then run 'pip'.
 
-if [ -f requirements.txt ]; then
-    if (grep -Fiq "git+" requirements.txt); then
-        echo " -----> Installing git"
-        apt-get update && \
-            apt-get install -y git --no-install-recommends && \
-            rm -r /var/lib/apt/lists/*
-    fi
-fi
+REQ_TXT=${WHISKEY_HOMEDIR}/requirements.txt
+if [ -f ${REQ_TXT} ]; then
+	if (grep -Fiq "git+" ${REQ_TXT}); then
+		echo " -----> Installing git"
+		apt-get update && \
+			apt-get install -y git --no-install-recommends && \
+			rm -r /var/lib/apt/lists/*
+	fi
 
-# Check whether there are any Mercurial repositories referenced from the
-# 'requirements.txt file. If there are then we need to first explicitly
-# install Mercurial and only then run 'pip'.
+	# Check whether there are any Mercurial repositories referenced from the
+	# 'requirements.txt file. If there are then we need to first explicitly
+	# install Mercurial and only then run 'pip'.
 
-if [ -f requirements.txt ]; then
-    if (grep -Fiq "hg+" requirements.txt); then
-        echo " -----> Installing mercurial"
-        pip install -U mercurial
-    fi
-fi
+	if (grep -Fiq "hg+" ${REQ_TXT}); then
+		echo " -----> Installing mercurial"
+		pip install -U mercurial
+	fi
 
-# Now run 'pip' to install any required Python packages based on the
-# contents of the 'requirements.txt' file.
+	# Now run 'pip' to install any required Python packages based on the
+	# contents of the 'requirements.txt' file.
 
-if [ -f requirements.txt ]; then
-    echo " -----> Installing dependencies with pip"
-    pip install -r requirements.txt -U --allow-all-external \
-        --exists-action=w --src=.whiskey/tmp
+	echo " -----> Installing dependencies with pip"
+	pip install -r ${REQ_TXT} -U --allow-all-external \
+		--exists-action=w --src=${WHISKEY_HOMEDIR}/tmp
 fi
 
 # Build and install mod_wsgi.
 
-$WHISKEY_BINDIR/pip install -U mod_wsgi==4.4.3
+${WHISKEY_BINDIR}/pip install -U mod_wsgi==4.4.3
 
 # Run any user supplied script to run after installing any application
 # dependencies. This is to allow any application specific setup scripts
@@ -151,12 +112,13 @@ $WHISKEY_BINDIR/pip install -U mod_wsgi==4.4.3
 #
 #   https://github.com/docker/docker/issues/9547
 
-if [ -x .whiskey/action_hooks/build ]; then
-    echo " -----> Running .whiskey/action_hooks/build"
-    .whiskey/action_hooks/build
+BUILD_HOOK=${WHISKEY_HOMEDIR}/action_hooks/build
+if [ -x ${BUILD_HOOK} ]; then
+	echo " -----> Running ${BUILD_HOOK}"
+	${BUILD_HOOK}
 fi
 
 # Clean up any temporary files, including the results of checking out
 # any source code repositories when doing a 'pip install' from a VCS.
 
-rm -rf .whiskey/tmp
+rm -rf ${WHISKEY_HOMEDIR}/tmp

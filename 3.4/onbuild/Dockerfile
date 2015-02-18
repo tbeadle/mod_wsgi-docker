@@ -1,8 +1,6 @@
-FROM grahamdumpleton/mod-wsgi-docker:python-3.4
+FROM mod-wsgi-docker:python3.4
 
-WORKDIR /app
-
-ONBUILD COPY . /app
+ONBUILD COPY docker/ /whiskey/
 ONBUILD RUN mod_wsgi-docker-build
 
 EXPOSE 80
