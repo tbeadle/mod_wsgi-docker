@@ -1,4 +1,4 @@
-FROM mod-wsgi-docker:python2.7
+FROM arbortbeadle/mod-wsgi-docker:python3.3
 
 ONBUILD COPY docker/ /whiskey/
 ONBUILD RUN mod_wsgi-docker-build

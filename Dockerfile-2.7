@@ -1,4 +1,4 @@
-# python-3.4
+# python-2.7
 
 FROM debian:jessie
 
@@ -22,40 +22,25 @@ RUN (PATH=/build/env/bin:$PATH; \
 	pip install -U -r requirements.txt && buildout init)
 
 # Install apache and python under /whiskey
-COPY buildout.cfg /build/
+COPY buildout-2.7.cfg /build/buildout.cfg
 RUN PATH=/build/env/bin:$PATH buildout -v -v
 
-WOKRDIR /whiskey/python/bin
-RUN ln -s easy_install-3.4 easy_install && \
-    ln -s idle3 idle && \
-    ln -s pip3 pip && \
-    ln -s pydoc3 pydoc && \
-    ln -s python3 python && \
-    ln -s python-config3 python-config
-
 # Cleanup the stuff that was only needed temporarily.
-WORKDIR /
-RUN rm -rf /build
-
+WORKDIR /app
 RUN apt-get purge -y python.* libpython.* virtualenv
 
-# Get pip installed in our new python location (under /whiskey)
-ENV PATH /whiskey/python/bin:$PATH
-RUN pip install virtualenv
-
-# Remove stuff that would just bloat our image.
-RUN find /whiskey/python/lib \
-	\( -type d -and -name test -or -name tests \) -or \
-	\( -type f -and -name '*.pyc' -or -name '*.pyo' \) | \
-	xargs -r rm -rf
+# Get pip installed in our new python location (under /whiskey) and
+# remove stuff that would just bloat our image.
+ENV PATH=/whiskey/python/bin:$PATH \
+	PYTHONHASHSEED=random \
+	WSGI_RUN_USER=www-data \
+	WSGI_RUN_GROUP=www-data
+RUN curl -SL 'https://bootstrap.pypa.io/get-pip.py' | python && \
+	 find /whiskey/python/lib \
+		\( -type d -and -name test -or -name tests \) -or \
+		\( -type f -and -name '*.pyc' -or -name '*.pyo' \) | \
+		xargs -r rm -rf && \
+	 rm -rf /build
 
 # Store scripts that may be used to start a shell or in an 'onbuild' image.
-COPY build.sh /whiskey/python/bin/mod_wsgi-docker-build
-COPY common.sh /whiskey/python/bin/mod_wsgi-docker-common
-COPY start.sh /whiskey/python/bin/mod_wsgi-docker-start
-COPY shell.sh /whiskey/python/bin/mod_wsgi-docker-shell
-COPY vars.sh /whiskey/python/bin/mod_wsgi-docker-vars
-
-ENV PYTHONHASHSEED=random WSGI_RUN_USER=www-data WSGI_RUN_GROUP=www-data
-
-WORKDIR /app
+COPY bin/* /whiskey/python/bin/
