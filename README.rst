@@ -26,7 +26,7 @@ How to use these images
 
 Create a ``Dockerfile`` in your Python web application project::
 
-    FROM tbeadle/mod_wsgi-docker:python2.7-onbuild
+    FROM arbortbeadle/mod-wsgi-docker:python2.7-onbuild
     CMD [ "hello.wsgi" ]
 
 The list of ``CMD`` arguments should consist of the path to the WSGI script
