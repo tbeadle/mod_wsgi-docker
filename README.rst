@@ -11,12 +11,12 @@ Available images
 
 Prebuilt images available are:
 
-* tbeadle/mod_wsgi-docker:python-2.7
-* tbeadle/mod_wsgi-docker:python-2.7-onbuild
-* tbeadle/mod_wsgi-docker:python-3.3
-* tbeadle/mod_wsgi-docker:python-3.3-onbuild
-* tbeadle/mod_wsgi-docker:python-3.4
-* tbeadle/mod_wsgi-docker:python-3.4-onbuild
+* arbortbeadle/mod-wsgi-docker:python-2.7
+* arbortbeadle/mod-wsgi-docker:python-2.7-onbuild
+* arbortbeadle/mod-wsgi-docker:python-3.3
+* arbortbeadle/mod-wsgi-docker:python-3.3-onbuild
+* arbortbeadle/mod-wsgi-docker:python-3.4
+* arbortbeadle/mod-wsgi-docker:python-3.4-onbuild
 
 See `mod-wsgi-docker <https://registry.hub.docker.com/u/grahamdumpleton/mod-wsgi-docker/>`_
 on Docker Hub for more information.
