@@ -25,7 +25,7 @@ RUN (PATH=/build/env/bin:$PATH; \
 COPY buildout-3.4.cfg /build/buildout.cfg
 RUN PATH=/build/env/bin:$PATH buildout -v -v
 
-WOKRDIR /whiskey/python/bin
+WORKDIR /whiskey/python/bin
 RUN ln -s easy_install-3.4 easy_install && \
     ln -s idle3 idle && \
     ln -s pip3 pip && \
