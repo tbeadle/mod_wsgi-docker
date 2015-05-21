@@ -11,12 +11,12 @@ Available images
 
 Prebuilt images available are:
 
-* arbortbeadle/mod-wsgi-docker:python-2.7
-* arbortbeadle/mod-wsgi-docker:python-2.7-onbuild
-* arbortbeadle/mod-wsgi-docker:python-3.3
-* arbortbeadle/mod-wsgi-docker:python-3.3-onbuild
-* arbortbeadle/mod-wsgi-docker:python-3.4
-* arbortbeadle/mod-wsgi-docker:python-3.4-onbuild
+* tbeadle/mod-wsgi-docker:python-2.7
+* tbeadle/mod-wsgi-docker:python-2.7-onbuild
+* tbeadle/mod-wsgi-docker:python-3.3
+* tbeadle/mod-wsgi-docker:python-3.3-onbuild
+* tbeadle/mod-wsgi-docker:python-3.4
+* tbeadle/mod-wsgi-docker:python-3.4-onbuild
 
 See `mod-wsgi-docker <https://registry.hub.docker.com/u/grahamdumpleton/mod-wsgi-docker/>`_
 on Docker Hub for more information.
@@ -26,7 +26,7 @@ How to use these images
 
 Create a ``Dockerfile`` in your Python web application project::
 
-    FROM arbortbeadle/mod-wsgi-docker:python2.7-onbuild
+    FROM tbeadle/mod-wsgi-docker:python2.7-onbuild
     CMD [ "hello.wsgi" ]
 
 The list of ``CMD`` arguments should consist of the path to the WSGI script
